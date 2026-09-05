@@ -50,9 +50,11 @@ function App() {
         try {
             const response = await fetch(`${API_URL}/api/chat/`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text, mode, history }) });
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Request failed");
+            if (!response.ok) {
+                throw new Error(response.status >= 500 ? "The AI service is temporarily unavailable." : (data.error || "Request failed"));
+            }
             setMessages((current) => [...current, { role: "assistant", content: data.response }]);
-        } catch (error) { console.error(error); setMessages((current) => [...current, { role: "assistant", content: "I could not reach the server. Check that the Django API is running and try again." }]); } finally { setLoading(false); }
+        } catch (error) { console.error(error); setMessages((current) => [...current, { role: "assistant", content: error.message === "The AI service is temporarily unavailable." ? "The backend is online, but its AI provider is unavailable. Check the Render service environment variables and logs." : "I could not reach the AI server. Check the backend URL and try again." }]); } finally { setLoading(false); }
     };
     const handlePrompt = (event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); sendMessage(); } };
     const copyPrompt = async () => { await navigator.clipboard?.writeText(generated ? "You are a senior product designer. Build a responsive website for a focused audience. Include clear structure, a refined visual system, mobile behavior, and an accessible output format." : prompt); setCopied(true); setTimeout(() => setCopied(false), 1600); };
