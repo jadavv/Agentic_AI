@@ -4,7 +4,7 @@ import { ArrowUpRight, BrainCircuit, Check, ChevronDown, Code2, Copy, Database, 
 import AIAvatar from "./components/AIAvatar";
 import "./App.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL || "https://agentic-ai-chatbot-vbqm.onrender.com";
 const modes = [
     { id: "normal", name: "Professional", icon: BrainCircuit },
     { id: "funny", name: "Creative", icon: Sparkles },
