@@ -32,7 +32,7 @@ const modes = [
 const providerOptions = {
     groq: {
         label: "Groq",
-        models: ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "mixtral-8x7b-32768"],
+        models: ["openai/gpt-oss-120b"],
     },
     gemini: {
         label: "Gemini",

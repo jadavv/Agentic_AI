@@ -1,9 +1,53 @@
-const API_URL =
+const API_URL = (
     import.meta.env.VITE_API_URL ||
-    "https://agentic-ai-chatbot-vbqm.onrender.com";
+    "https://agentic-ai-chatbot-vbqm.onrender.com"
+).replace(/\/+$/, "");
 
 const DEFAULT_PROVIDER = "groq";
-const DEFAULT_MODEL = "llama-3.1-8b-instant";
+const DEFAULT_MODEL = "openai/gpt-oss-120b";
+
+const statusMessages = {
+    400: "The AI request was invalid. Please check the message and selected model.",
+    401: "The AI server rejected the request. Check the backend provider credentials.",
+    403: "The AI server refused this request. Check the backend permissions and CORS settings.",
+    404: "The AI endpoint was not found. Check the deployed backend URL and route.",
+    500: "The AI server encountered an internal error.",
+    502: "The AI provider is unavailable right now.",
+    503: "The AI server or provider is temporarily unavailable.",
+};
+
+const readResponse = async (response) => {
+    const raw = await response.text();
+    let data = {};
+    if (raw) {
+        try {
+            data = JSON.parse(raw);
+        } catch (error) {
+            if (response.ok) throw new Error("The AI server returned an invalid response.");
+            data = { error: raw.slice(0, 240) };
+        }
+    }
+
+    if (!response.ok) {
+        const backendMessage = data.error || data.detail || data.message;
+        throw new Error(backendMessage || statusMessages[response.status] || `AI request failed with HTTP ${response.status}.`);
+    }
+
+    return data;
+};
+
+const request = async (url, options) => {
+    try {
+        const response = await fetch(url, options);
+        return await readResponse(response);
+    } catch (error) {
+        if (error.name === "AbortError") throw error;
+        if (error instanceof TypeError) {
+            throw new Error("Unable to connect to the AI server. Check VITE_API_URL, the Render service, and backend CORS settings.");
+        }
+        throw error;
+    }
+};
 
 export async function sendChatMessage({
     message,
@@ -13,9 +57,7 @@ export async function sendChatMessage({
     model = DEFAULT_MODEL,
     signal,
 }) {
-    const response = await fetch(
-        `${API_URL}/api/chat/`,
-        {
+    return request(`${API_URL}/api/chat/`, {
             method: "POST",
 
             headers: {
@@ -30,21 +72,7 @@ export async function sendChatMessage({
                 model,
                 history,
             }),
-        }
-    );
-
-
-    const data = await response.json();
-
-
-    if (!response.ok) {
-        throw new Error(
-            data.error || "AI request failed"
-        );
-    }
-
-
-    return data;
+        });
 }
 
 export async function sendImageChatMessage({
@@ -66,17 +94,11 @@ export async function sendImageChatMessage({
     formData.append("chat_id", chatId || "");
     formData.append("image", image);
 
-    const response = await fetch(`${API_URL}/api/chat/`, {
+    const data = await request(`${API_URL}/api/chat/`, {
         method: "POST",
         signal,
         body: formData,
     });
-
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(data.error || "Image upload failed");
-    }
 
     return data;
 }
@@ -101,17 +123,11 @@ export async function sendFileChatMessage({
     formData.append("file", file);
     formData.append("document", file);
 
-    const response = await fetch(`${API_URL}/api/chat/`, {
+    const data = await request(`${API_URL}/api/chat/`, {
         method: "POST",
         signal,
         body: formData,
     });
-
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(data.error || "File upload failed");
-    }
 
     return data;
 }
@@ -127,7 +143,7 @@ export async function askDocumentQuestion({
         throw new Error("Document question is missing");
     }
 
-    const response = await fetch(`${API_URL}/api/chat/`, {
+    const data = await request(`${API_URL}/api/chat/`, {
         method: "POST",
         signal,
         headers: {
@@ -142,12 +158,6 @@ export async function askDocumentQuestion({
             model,
         }),
     });
-
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(data.error || "Document Q&A failed");
-    }
 
     return {
         title: data.title,
