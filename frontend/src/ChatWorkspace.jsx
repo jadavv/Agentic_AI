@@ -36,17 +36,20 @@ const providerOptions = {
     },
     gemini: {
         label: "Gemini",
-        models: ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"],
+        models: ["gemini-3.6-flash"],
     },
 };
+
+const DEFAULT_PROVIDER = "gemini";
+const DEFAULT_MODEL = providerOptions[DEFAULT_PROVIDER].models[0];
 
 const makeChatId = () => `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 const createChatObject = (title = "New Chat") => ({
     id: makeChatId(),
     title,
-    provider: "groq",
-    model: providerOptions.groq.models[0],
+    provider: DEFAULT_PROVIDER,
+    model: DEFAULT_MODEL,
     messages: [],
     updatedAt: Date.now(),
 });
@@ -142,8 +145,8 @@ function ChatWorkspace() {
     const [chatHistory, setChatHistory] = useState(initialChatState.history);
     const [currentChatId, setCurrentChatId] = useState(initialChatState.currentId);
     const [searchTerm, setSearchTerm] = useState("");
-    const [provider, setProvider] = useState("groq");
-    const [model, setModel] = useState(providerOptions.groq.models[0]);
+    const [provider, setProvider] = useState(DEFAULT_PROVIDER);
+    const [model, setModel] = useState(DEFAULT_MODEL);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [uploadingAttachment, setUploadingAttachment] = useState(false);

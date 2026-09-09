@@ -3,8 +3,8 @@ const API_URL = (
     "https://agentic-ai-chatbot-vbqm.onrender.com"
 ).replace(/\/+$/, "");
 
-const DEFAULT_PROVIDER = "groq";
-const DEFAULT_MODEL = "openai/gpt-oss-120b";
+const DEFAULT_PROVIDER = "gemini";
+const DEFAULT_MODEL = "gemini-3.6-flash";
 
 const statusMessages = {
     400: "The AI request was invalid. Please check the message and selected model.",
